@@ -67,15 +67,58 @@
                                     <h3 class="text-white font-semibold truncate" title="{{ $track->track_name }}">{{ $track->track_name }}</h3>
                                     <p class="text-sm text-spotify-text truncate" title="{{ $track->artist_name }}">{{ $track->artist_name }}</p>
                                 </div>
-                                <form action="{{ route('playlists.tracks.destroy', [$playlist->id, $track->id]) }}" method="POST" onsubmit="return confirm('Remove this song from the playlist?')" class="shrink-0">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-spotify-text hover:text-red-500 transition-colors">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                                        </svg>
-                                    </button>
-                                </form>
+                                <div x-data="{ showConfirm: false }" class="shrink-0">
+    
+    <button @click.prevent="showConfirm = true" 
+            type="button" 
+            class="flex items-center space-x-2 text-sm text-spotify-text px-3 py-1.5 rounded-md hover:text-red-500 hover:bg-spotify-dark transition-colors"
+            title="Remove from playlist">
+        
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+        </svg>
+    </button>
+
+    <div x-show="showConfirm" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0 scale-90"
+         x-transition:enter-end="opacity-100 scale-100"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="opacity-100 scale-100"
+         x-transition:leave-end="opacity-0 scale-90"
+         class="fixed inset-0 z-50 flex items-center justify-center p-4"
+         style="display: none;">
+        
+        <div @click="showConfirm = false" class="fixed inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+        <div class="relative bg-spotify-gray w-full max-w-md rounded-xl shadow-lg border border-spotify-dark p-6">
+            
+            <h3 class="text-xl font-bold text-white mb-2">Remove Song?</h3>
+            <p class="text-spotify-text mb-6">
+                Are you sure you want to remove 
+                <strong class="text-white">{{ $track->track_name }}</strong> 
+                from this playlist?
+            </p>
+
+            <div class="flex justify-end space-x-4">
+                <button @click="showConfirm = false" 
+                        type="button" 
+                        class="px-6 py-2.5 rounded-full bg-spotify-dark text-white font-medium hover:bg-gray-700 transition">
+                    Cancel
+                </button>
+
+                <form action="{{ route('playlists.tracks.destroy', [$playlist->id, $track->id]) }}" method="POST">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" 
+                            class="px-6 py-2.5 rounded-full bg-red-600 text-white font-medium hover:bg-red-700 transition">
+                        Yes, Remove
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
                             </div>
                             <div class="mt-3 grid grid-cols-2 gap-2 text-xs text-spotify-text">
                                 @if($track->collection_name)
