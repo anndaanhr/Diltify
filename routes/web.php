@@ -26,6 +26,8 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/music/ajax-search', [App\Http\Controllers\MusicController::class, 'ajaxSearch'])
+       ->name('music.ajax.search');
 Route::get('/register', [AuthController::class, 'showRegisterForm'])->name('register');
 Route::post('/register', [AuthController::class, 'register']);
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');

@@ -7,14 +7,14 @@ use App\Http\Requests\StoreFavoriteRequest;
 use App\Models\Favorite;
 use App\Models\Playlist;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 
 class MusicController extends Controller
 {
-    /**
-     * Display the search page.
-     */
+
+    
     public function index()
     {
         return view('music.search', [
@@ -134,6 +134,35 @@ class MusicController extends Controller
         return Playlist::byUser($userId)
             ->orderByDesc('created_at')
             ->get();
+    }
+
+    public function ajaxSearch(Request $request)
+    {
+        
+        $request->validate([
+            'query' => 'required|string|min:2',
+            'playlist_id' => 'required|exists:playlists,id',
+        ]);
+
+        $query = $request->input('query');
+        $playlist = Playlist::findOrFail($request->input('playlist_id'));
+
+        $apiResponse = $this->callApi($query);
+        $results = $apiResponse['results'];
+
+        $html = '';
+        if (count($results) > 0) {
+            foreach ($results as $result) {
+                $html .= view('music._search_result_item', [
+                    'result' => $result,
+                    'playlist' => $playlist
+                ])->render();
+            }
+        } else {
+            $html = '<p class="text-spotify-text text-center py-4">No results found for "' . e($query) . '".</p>';
+        }
+
+        return response($html);
     }
 }
 

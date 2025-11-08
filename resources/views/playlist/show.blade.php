@@ -2,6 +2,7 @@
 
 @section('content')
 <div class="max-w-7xl mx-auto">
+    
     <div class="flex items-center justify-between mb-8">
         <div>
             <h1 class="text-4xl font-bold text-white mb-2">{{ $playlist->name }}</h1>
@@ -9,12 +10,25 @@
         </div>
         <div class="flex space-x-4">
             <a href="{{ route('playlists.edit', $playlist->id) }}"
-                class="bg-spotify-gray hover:bg-spotify-dark text-white font-medium px-6 py-3 rounded-full transition-colors border border-gray-700">
+               class="bg-spotify-gray hover:bg-spotify-dark text-white font-medium px-6 py-3 rounded-full transition-colors border border-gray-700">
                 Edit
             </a>
         </div>
     </div>
 
+    <form action="{{ route('music.search') }}" method="POST" class="mb-8">
+        @csrf
+        <div class="relative">
+            <input type="text" name="query" value="{{ $query ?? '' }}" required
+                   class="w-full px-6 py-4 bg-spotify-gray border border-gray-700 rounded-full text-white placeholder-spotify-text focus:outline-none focus:ring-2 focus:ring-spotify-green focus:border-transparent text-lg"
+                   placeholder="Search to add more songs...">
+            <button type="submit" class="absolute right-2 top-2 bg-spotify-green hover:bg-green-600 text-black p-3 rounded-full transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+            </button>
+        </div>
+    </form>
     @if($tracks->count() > 0)
         <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             @foreach($tracks as $track)
@@ -113,4 +127,3 @@
     @endif
 </div>
 @endsection
-
