@@ -177,7 +177,7 @@
                 }
                 
                 // Fetch new content via AJAX
-                fetch({{ route('dashboard.leaderboard') }}?page=${page}, {
+                fetch(`{{ route('dashboard.leaderboard') }}?page=${page}`, {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',

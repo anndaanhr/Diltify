@@ -255,4 +255,63 @@ class MusicController extends Controller
 
         return response($html);
     }
+
+    /**
+     * Get search suggestions for autocomplete.
+     */
+    public function getSuggestions(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2',
+        ]);
+
+        $query = $request->input('query');
+        $results = [];
+
+        try {
+            // Search with higher limit to get more results for filtering
+            $response = Http::get('https://itunes.apple.com/search', [
+                'term' => $query,
+                'media' => 'music',
+                'limit' => 50, // Get more results to filter from
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['results']) && is_array($data['results'])) {
+                    $queryLower = strtolower(trim($query));
+                    
+                    // Format results and filter by track name starting with query
+                    $results = [];
+                    foreach ($data['results'] as $item) {
+                        $trackName = $item['trackName'] ?? '';
+                        $trackNameLower = strtolower($trackName);
+                        
+                        // Filter: track name must start with query (case insensitive)
+                        if (strpos($trackNameLower, $queryLower) === 0) {
+                            $results[] = [
+                                'trackId' => $item['trackId'] ?? null,
+                                'trackName' => $trackName,
+                                'artistName' => $item['artistName'] ?? 'Unknown',
+                                'artworkUrl' => $item['artworkUrl60'] ?? $item['artworkUrl30'] ?? null,
+                                'previewUrl' => $item['previewUrl'] ?? null,
+                            ];
+                        }
+                    }
+
+                    // iTunes API already returns results sorted by relevance/popularity
+                    // So we just take the first 8 results (most popular/relevant)
+                    $results = array_slice($results, 0, 8);
+                }
+            }
+        } catch (\Exception $e) {
+            // Return empty array on error
+            $results = [];
+        }
+
+        return response()->json([
+            'suggestions' => $results,
+        ]);
+    }
 }
