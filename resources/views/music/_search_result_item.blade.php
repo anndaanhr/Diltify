@@ -12,6 +12,7 @@
 
     <form action="{{ route('playlists.tracks.store', $playlist->id) }}" method="POST" class="add-track-form">
         @csrf
+        <input type="hidden" name="playlist_id" value="{{ $playlist->id }}">
         <input type="hidden" name="track_id" value="{{ $result['trackId'] }}">
         <input type="hidden" name="track_name" value="{{ $result['trackName'] }}">
         <input type="hidden" name="artist_name" value="{{ $result['artistName'] }}">
