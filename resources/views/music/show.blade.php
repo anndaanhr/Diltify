@@ -67,7 +67,7 @@
             <!-- Actions -->
             <div class="flex flex-wrap gap-3">
                 @if(isset($favorite) && $favorite)
-                    <form action="{{ route('favorites.destroy', $favorite->id) }}" method="POST" onsubmit="return confirm('Remove from favorites?')">
+                    <form action="{{ route('favorites.destroy', $favorite->id) }}" method="POST">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-full transition-all duration-200 shadow shadow-black/20">
@@ -239,4 +239,3 @@
     </div>
 </div>
 @endsection
-
