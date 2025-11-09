@@ -125,3 +125,4 @@ class FavoriteController extends Controller
         }
     }
 }
+
