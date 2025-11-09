@@ -117,12 +117,11 @@ class FavoriteController extends Controller
 
             $favorite->delete();
 
-            return redirect()->route('favorites.index')
+            return redirect()->back()
                 ->with('success', 'Song removed from favorites!');
         } catch (\Exception $e) {
-            return redirect()->route('favorites.index')
+            return redirect()->back()
                 ->with('error', 'Failed to remove favorite.');
         }
     }
 }
-

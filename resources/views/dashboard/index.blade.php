@@ -57,8 +57,6 @@
                                 'artistName' => $result['artistName'],
                                 'previewUrl' => $result['previewUrl'],
                                 'artworkUrl' => $result['artworkUrl'],
-                                'showActions' => true,
-                                'playlists' => $userPlaylists,
                                 'metadata' => [
                                     'album' => $result['collectionName'],
                                     'albumArtist' => $result['collectionArtistName'],
@@ -91,8 +89,6 @@
                                 'artistName' => $result['artistName'],
                                 'previewUrl' => $result['previewUrl'],
                                 'artworkUrl' => $result['artworkUrl'],
-                                'showActions' => true,
-                                'playlists' => $userPlaylists,
                                 'metadata' => [
                                     'album' => $result['collectionName'],
                                     'albumArtist' => $result['collectionArtistName'],
@@ -125,8 +121,6 @@
                                 'artistName' => $result['artistName'],
                                 'previewUrl' => $result['previewUrl'],
                                 'artworkUrl' => $result['artworkUrl'],
-                                'showActions' => true,
-                                'playlists' => $userPlaylists,
                                 'metadata' => [
                                     'album' => $result['collectionName'],
                                     'albumArtist' => $result['collectionArtistName'],
@@ -183,7 +177,7 @@
                 }
                 
                 // Fetch new content via AJAX
-                fetch(`{{ route('dashboard.leaderboard') }}?page=${page}`, {
+                fetch({{ route('dashboard.leaderboard') }}?page=${page}, {
                     method: 'GET',
                     headers: {
                         'X-Requested-With': 'XMLHttpRequest',
@@ -244,8 +238,6 @@
                                         'artistName' => $result['artistName'],
                                         'previewUrl' => $result['previewUrl'],
                                         'artworkUrl' => $result['artworkUrl'],
-                                        'showActions' => true,
-                                        'playlists' => $userPlaylists,
                                         'metadata' => [
                                             'album' => $result['collectionName'],
                                             'albumArtist' => $result['collectionArtistName'],
@@ -298,8 +290,7 @@
                         'trackName' => $favorite->track_name,
                         'artistName' => $favorite->artist_name,
                         'previewUrl' => $favorite->preview_url,
-                        'artworkUrl' => $favorite->artwork_url,
-                        'showActions' => false
+                        'artworkUrl' => $favorite->artwork_url
                     ])
                 @endforeach
             </div>
