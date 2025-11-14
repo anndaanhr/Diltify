@@ -92,3 +92,93 @@
   @apply w-3 h-3 rounded-full bg-white border-none;
 }
 
+/* Horizontal scrolling sections (Spotify-style) */
+.music-section-scroll {
+  @apply relative;
+}
+
+.music-section-scroll .flex {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari, Opera */
+}
+
+/* Smooth scroll with momentum on iOS */
+.music-section-scroll .flex {
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+}
+
+.music-section-scroll .flex > * {
+  scroll-snap-align: start;
+}
+
+/* Section header styling */
+.music-section-scroll + .section-header {
+  @apply mb-6;
+}
+
+/* Card hover effects for music sections */
+.music-section-scroll .group:hover {
+  @apply transform scale-105 transition-transform duration-200;
+}
+
+/* Gradient fade effect on scroll edges (optional enhancement) */
+.music-section-scroll::before,
+.music-section-scroll::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 60px;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.3s;
+}
+
+.music-section-scroll::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(18, 18, 18, 0.9), transparent);
+  opacity: 0;
+}
+
+.music-section-scroll::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(18, 18, 18, 0.9), transparent);
+  opacity: 0;
+}
+
+.music-section-scroll:hover::before,
+.music-section-scroll:hover::after {
+  opacity: 1;
+}
+
+/* Leaderboard styles */
+.leaderboard-container {
+  @apply relative;
+}
+
+.leaderboard-container .grid {
+  scroll-behavior: smooth;
+}
+
+/* Leaderboard item hover effect */
+.leaderboard-container .group:hover {
+  @apply transform scale-[1.02] transition-transform duration-200;
+}
+
+/* Remove any white borders from leaderboard */
+.leaderboard-container {
+  border: none !important;
+  background: transparent !important;
+}
+

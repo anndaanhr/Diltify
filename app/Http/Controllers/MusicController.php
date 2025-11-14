@@ -6,6 +6,7 @@ use App\Http\Requests\SearchMusicRequest;
 use App\Http\Requests\StoreFavoriteRequest;
 use App\Models\Favorite;
 use App\Models\Playlist;
+use App\Services\ItunesService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -13,8 +14,13 @@ use Illuminate\Support\Facades\Http;
 
 class MusicController extends Controller
 {
+    protected ItunesService $itunesService;
 
-    
+    public function __construct(ItunesService $itunesService)
+    {
+        $this->itunesService = $itunesService;
+    }
+
     public function index()
     {
         return view('music.search', [
@@ -86,6 +92,77 @@ class MusicController extends Controller
     }
 
     /**
+     * Show track detail page.
+     */
+    public function show(string $trackId)
+    {
+        try {
+            // Fetch track details from iTunes API
+            $response = Http::get('https://itunes.apple.com/lookup', [
+                'id' => $trackId,
+            ]);
+
+            $track = null;
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['results']) && count($data['results']) > 0) {
+                    $item = $data['results'][0];
+                    $trackTimeMillis = $item['trackTimeMillis'] ?? null;
+                    $releaseDate = $item['releaseDate'] ?? null;
+
+                    $track = [
+                        'trackId' => $item['trackId'] ?? null,
+                        'trackName' => $item['trackName'] ?? 'Unknown',
+                        'artistName' => $item['artistName'] ?? 'Unknown',
+                        'previewUrl' => $item['previewUrl'] ?? null,
+                        'artworkUrl' => $item['artworkUrl100'] ?? $item['artworkUrl60'] ?? null,
+                        'collectionName' => $item['collectionName'] ?? null,
+                        'collectionArtistName' => $item['collectionArtistName'] ?? $item['artistName'] ?? null,
+                        'primaryGenreName' => $item['primaryGenreName'] ?? null,
+                        'trackTimeMillis' => $trackTimeMillis,
+                        'durationLabel' => $trackTimeMillis ? gmdate('i:s', (int) ($trackTimeMillis / 1000)) : null,
+                        'releaseDate' => $releaseDate,
+                        'releaseYear' => $releaseDate ? date('Y', strtotime($releaseDate)) : null,
+                        'country' => $item['country'] ?? null,
+                        'currency' => $item['currency'] ?? null,
+                        'trackPrice' => $item['trackPrice'] ?? null,
+                        'collectionPrice' => $item['collectionPrice'] ?? null,
+                        'trackViewUrl' => $item['trackViewUrl'] ?? null,
+                        'collectionViewUrl' => $item['collectionViewUrl'] ?? null,
+                        'artistViewUrl' => $item['artistViewUrl'] ?? null,
+                        'trackNumber' => $item['trackNumber'] ?? null,
+                        'trackCount' => $item['trackCount'] ?? null,
+                        'discNumber' => $item['discNumber'] ?? null,
+                        'discCount' => $item['discCount'] ?? null,
+                    ];
+                }
+            }
+
+            if (!$track) {
+                return redirect()->route('music.search')
+                    ->with('error', 'Track not found.');
+            }
+
+            $userPlaylists = $this->getUserPlaylists();
+
+            // Determine if this track is already in the user's favorites
+            $favorite = null;
+            $userId = session('user_id');
+            if ($userId && isset($track['trackName']) && isset($track['artistName'])) {
+                $favorite = Favorite::where('user_id', $userId)
+                    ->where('track_name', $track['trackName'])
+                    ->where('artist_name', $track['artistName'])
+                    ->first();
+            }
+
+            return view('music.show', compact('track', 'userPlaylists', 'favorite'));
+        } catch (\Exception $e) {
+            return redirect()->route('music.search')
+                ->with('error', 'Failed to load track details.');
+        }
+    }
+
+    /**
      * Add a song to favorites.
      */
     public function addToFavorite(StoreFavoriteRequest $request): RedirectResponse
@@ -138,7 +215,6 @@ class MusicController extends Controller
 
     public function ajaxSearch(Request $request)
     {
-        
         $request->validate([
             'query' => 'required|string|min:2',
             'playlist_id' => 'required|exists:playlists,id',
@@ -147,8 +223,23 @@ class MusicController extends Controller
         $query = $request->input('query');
         $playlist = Playlist::findOrFail($request->input('playlist_id'));
 
-        $apiResponse = $this->callApi($query);
-        $results = $apiResponse['results'];
+        try {
+            $response = Http::get('https://itunes.apple.com/search', [
+                'term' => $query,
+                'media' => 'music',
+                'limit' => 24,
+            ]);
+
+            $results = [];
+            if ($response->successful()) {
+                $data = $response->json();
+                if (isset($data['results']) && is_array($data['results'])) {
+                    $results = $this->itunesService->formatSearchResults($data['results']);
+                }
+            }
+        } catch (\Exception $e) {
+            $results = [];
+        }
 
         $html = '';
         if (count($results) > 0) {
@@ -164,5 +255,63 @@ class MusicController extends Controller
 
         return response($html);
     }
-}
 
+    /**
+     * Get search suggestions for autocomplete.
+     */
+    public function getSuggestions(Request $request)
+    {
+        $request->validate([
+            'query' => 'required|string|min:2',
+        ]);
+
+        $query = $request->input('query');
+        $results = [];
+
+        try {
+            // Search with higher limit to get more results for filtering
+            $response = Http::get('https://itunes.apple.com/search', [
+                'term' => $query,
+                'media' => 'music',
+                'limit' => 50, // Get more results to filter from
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+
+                if (isset($data['results']) && is_array($data['results'])) {
+                    $queryLower = strtolower(trim($query));
+                    
+                    // Format results and filter by track name starting with query
+                    $results = [];
+                    foreach ($data['results'] as $item) {
+                        $trackName = $item['trackName'] ?? '';
+                        $trackNameLower = strtolower($trackName);
+                        
+                        // Filter: track name must start with query (case insensitive)
+                        if (strpos($trackNameLower, $queryLower) === 0) {
+                            $results[] = [
+                                'trackId' => $item['trackId'] ?? null,
+                                'trackName' => $trackName,
+                                'artistName' => $item['artistName'] ?? 'Unknown',
+                                'artworkUrl' => $item['artworkUrl60'] ?? $item['artworkUrl30'] ?? null,
+                                'previewUrl' => $item['previewUrl'] ?? null,
+                            ];
+                        }
+                    }
+
+                    // iTunes API already returns results sorted by relevance/popularity
+                    // So we just take the first 8 results (most popular/relevant)
+                    $results = array_slice($results, 0, 8);
+                }
+            }
+        } catch (\Exception $e) {
+            // Return empty array on error
+            $results = [];
+        }
+
+        return response()->json([
+            'suggestions' => $results,
+        ]);
+    }
+}

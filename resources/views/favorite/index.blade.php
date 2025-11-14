@@ -41,7 +41,7 @@
                         <a href="{{ route('favorites.edit', $favorite->id) }}" class="flex-1 px-3 py-2 bg-spotify-dark hover:bg-spotify-gray text-white text-sm font-medium rounded-full transition-colors text-center">
                             Edit Note
                         </a>
-                        <form action="{{ route('favorites.destroy', $favorite->id) }}" method="POST" class="flex-1" onsubmit="return confirm('Remove from favorites?')">
+                        <form action="{{ route('favorites.destroy', $favorite->id) }}" method="POST" class="flex-1">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="w-full px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-full transition-colors">

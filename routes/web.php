@@ -41,7 +41,12 @@ Route::middleware('auth.custom')->group(function () {
     // Music routes
     Route::get('/music/search', [MusicController::class, 'index'])->name('music.search');
     Route::post('/music/search', [MusicController::class, 'search']);
+    Route::get('/music/suggestions', [MusicController::class, 'getSuggestions'])->name('music.suggestions');
+    Route::get('/music/track/{trackId}', [MusicController::class, 'show'])->name('music.track.show');
     Route::post('/music/add-to-favorite', [MusicController::class, 'addToFavorite'])->name('music.add-to-favorite');
+    
+    // Dashboard routes
+    Route::get('/dashboard/leaderboard', [DashboardController::class, 'getLeaderboardPage'])->name('dashboard.leaderboard');
     
     // Resource routes
     Route::resource('playlists', PlaylistController::class);

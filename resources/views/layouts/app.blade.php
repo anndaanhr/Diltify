@@ -82,6 +82,8 @@
         </div>
         <audio id="audioElement" class="hidden"></audio>
     </div>
+
+    @stack('scripts')
 </body>
 </html>
 
