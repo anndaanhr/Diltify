@@ -9,6 +9,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <script src="//unpkg.com/alpinejs" defer></script>
+    <link rel="icon" href="{{ asset('logo.svg') }}" type="image/x-icon">
 </head>
 <body class="bg-spotify-black text-white min-h-screen">
     <div class="flex h-screen overflow-hidden">
